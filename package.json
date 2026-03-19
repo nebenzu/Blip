@@ -28,7 +28,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/benkraemer/blip"
+    "url": "https://github.com/nebenzu/Blip"
   },
   "files": [
     "dist",

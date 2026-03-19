@@ -9,3 +9,4 @@ Blip/
 !public/**
 !logo.png
 !landing/**/*.png
+.vercel

@@ -17,8 +17,8 @@ The annotation overlay injects drawing tools (pen, arrow, circle, rectangle, hig
 ### 1. Install
 
 ```bash
-git clone https://github.com/benkraemer/blip.git
-cd blip
+git clone https://github.com/nebenzu/Blip.git
+cd Blip
 npm install
 npm run build
 ```
@@ -32,7 +32,7 @@ Add to your Claude Code MCP settings (`.mcp.json` in your project root or `~/.cl
   "mcpServers": {
     "blip": {
       "command": "node",
-      "args": ["/absolute/path/to/blip/dist/index.js"]
+      "args": ["/absolute/path/to/Blip/dist/index.js"]
     }
   }
 }
