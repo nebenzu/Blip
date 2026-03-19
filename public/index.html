@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blip - Annotate</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="toolbar">
+    <div class="group">
+      <button data-tool="pen" class="active" title="Pen (freehand)">Pen</button>
+      <button data-tool="arrow" title="Arrow">Arrow</button>
+      <button data-tool="circle" title="Circle/Ellipse">Circle</button>
+      <button data-tool="rect" title="Rectangle">Rect</button>
+      <button data-tool="highlight" title="Highlight area">Highlight</button>
+      <button data-tool="text" title="Text label">Text</button>
+    </div>
+
+    <div class="separator"></div>
+
+    <div class="group">
+      <button class="color-btn active" data-color="#ff3333" style="background:#ff3333" title="Red"></button>
+      <button class="color-btn" data-color="#33aaff" style="background:#33aaff" title="Blue"></button>
+      <button class="color-btn" data-color="#33ff88" style="background:#33ff88" title="Green"></button>
+      <button class="color-btn" data-color="#ffdd33" style="background:#ffdd33" title="Yellow"></button>
+      <button class="color-btn" data-color="#ffffff" style="background:#ffffff" title="White"></button>
+      <button class="color-btn" data-color="#111111" style="background:#111111" title="Black"></button>
+    </div>
+
+    <div class="separator"></div>
+
+    <div class="group">
+      <button data-size="2" title="Thin"></button>
+      <button data-size="4" class="active" title="Medium"></button>
+      <button data-size="8" title="Thick"></button>
+    </div>
+
+    <div class="separator"></div>
+
+    <div class="group">
+      <button id="undoBtn" title="Undo (Cmd+Z)">Undo</button>
+      <button id="redoBtn" title="Redo (Cmd+Shift+Z)">Redo</button>
+      <button id="clearBtn" title="Clear all annotations">Clear</button>
+    </div>
+
+    <button id="sendBtn">Send to Claude</button>
+    <span id="status"></span>
+  </div>
+
+  <div class="canvas-container">
+    <div class="canvas-wrapper">
+      <canvas id="bgCanvas"></canvas>
+      <canvas id="annotationCanvas"></canvas>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

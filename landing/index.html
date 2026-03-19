@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blip -- Visual Annotation for AI Coding</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Satoshi:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --sky: #b8dce8;
+      --sage: #b5c9a8;
+      --sage-light: #c4d4b8;
+      --cream: #f0ede4;
+      --dark: #2a2a1e;
+      --dark-secondary: #5a5a48;
+      --dark-muted: #8a8a72;
+      --accent: #ff6b35;
+      --accent-light: #ff8f5e;
+      --surface: #111114;
+      --surface-raised: #18181c;
+      --border: rgba(255,255,255,0.06);
+      --border-light: rgba(0,0,0,0.08);
+      --red: #ef4444;
+      --blue: #60a5fa;
+      --green: #4ade80;
+      --amber: #fbbf24;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--sky);
+      color: var(--dark);
+      font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* Reveal animations */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-d1 { transition-delay: 0.1s; }
+    .reveal-d2 { transition-delay: 0.2s; }
+    .reveal-d3 { transition-delay: 0.3s; }
+    .reveal-d4 { transition-delay: 0.4s; }
+
+    /* --- Minimal logo --- */
+    .top-logo {
+      text-align: center;
+      padding: 32px 24px 0;
+    }
+
+    .top-logo img {
+      height: 38px;
+      width: auto;
+    }
+
+    /* --- Hero --- */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px 60px;
+      position: relative;
+      overflow: hidden;
+      background: var(--sky);
+    }
+
+    .hero-headline {
+      position: relative;
+      text-align: left;
+      padding-left: 240px;
+      margin: 0 auto;
+      transform: translateX(-50px);
+    }
+
+    /* Character overlaps: behind line 1, in front of line 2 */
+    .hero-character {
+      position: absolute;
+      z-index: 5;
+      left: 30px;
+      top: 32%;
+      transform: translateY(-55%);
+    }
+
+    .h1-line1 {
+      position: relative;
+      z-index: 1;
+    }
+
+    .h1-line2 {
+      position: relative;
+      z-index: 10;
+    }
+
+    .hero-character img {
+      width: 336px;
+      height: auto;
+      filter: drop-shadow(0 20px 40px rgba(0,0,0,0.15));
+      animation: float 4s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    .hero-text {
+      text-align: center;
+    }
+
+    h1 {
+      font-size: clamp(48px, 7vw, 92px);
+      font-weight: 900;
+      line-height: 0.95;
+      letter-spacing: -0.045em;
+      color: var(--dark);
+    }
+
+    .h1-line {
+      display: block;
+    }
+
+    h1 .highlight {
+      position: relative;
+      display: inline-block;
+    }
+
+    .hand-underline {
+      position: absolute;
+      bottom: -4px; left: -4px;
+      width: calc(100% + 8px);
+      height: 14px;
+      overflow: visible;
+    }
+
+    .hand-underline path {
+      fill: none;
+      stroke: var(--dark);
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-dasharray: 300;
+      stroke-dashoffset: 300;
+    }
+
+    .reveal.visible .hand-underline path {
+      animation: drawLine 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.6s forwards;
+    }
+
+    @keyframes drawLine {
+      to { stroke-dashoffset: 0; }
+    }
+
+    .hero-sub {
+      font-size: clamp(16px, 1.8vw, 19px);
+      color: var(--dark-secondary);
+      max-width: 480px;
+      line-height: 1.7;
+      margin: 20px 0 28px;
+    }
+
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 13px 26px; border-radius: 100px;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer; border: none;
+      transition: all 0.2s ease;
+      text-decoration: none; font-family: inherit;
+    }
+
+    .btn-primary {
+      background: var(--dark);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+
+    .btn-ghost {
+      background: rgba(255,255,255,0.5);
+      color: var(--dark-secondary);
+      border: 1px solid var(--border-light);
+    }
+    .btn-ghost:hover {
+      color: var(--dark);
+      background: rgba(255,255,255,0.7);
+    }
+
+    .btn svg { width: 16px; height: 16px; }
+
+    /* Sparkle decorations */
+    .sparkle {
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .sparkle svg {
+      fill: rgba(255,255,255,0.6);
+      animation: twinkle 3s ease-in-out infinite;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.3; transform: scale(0.8) rotate(0deg); }
+      50% { opacity: 1; transform: scale(1.1) rotate(15deg); }
+    }
+
+    /* --- Demo --- */
+    .demo-section {
+      padding: 0 24px 140px;
+      display: flex; flex-direction: column; align-items: center;
+      position: relative;
+      background: var(--sky);
+    }
+
+    .demo-window {
+      width: 100%; max-width: 740px;
+      background: #0c0c0e;
+      border: 1px solid rgba(255,255,255,0.04);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.03),
+        0 20px 60px -15px rgba(0,0,0,0.35);
+      position: relative;
+      z-index: 2;
+    }
+
+    .demo-titlebar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 16px 20px;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .demo-dot { width: 11px; height: 11px; border-radius: 50%; }
+    .demo-dot:nth-child(1) { background: #ff5f57; }
+    .demo-dot:nth-child(2) { background: #febc2e; }
+    .demo-dot:nth-child(3) { background: #28c840; }
+
+    .demo-titlebar-text {
+      flex: 1; text-align: center;
+      font-size: 12px; color: rgba(255,255,255,0.25);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 400;
+    }
+
+    .demo-frame-label {
+      font-size: 12px; font-weight: 500;
+      color: rgba(255,255,255,0.5);
+      padding: 4px 12px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .demo-body {
+      padding: 28px;
+      min-height: 320px;
+      position: relative;
+      background: #0c0c0e;
+    }
+
+    .demo-layout {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      gap: 16px; height: 260px;
+    }
+
+    .demo-sidebar {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.04);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+
+    .demo-sidebar-item {
+      height: 9px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 4px;
+    }
+
+    .demo-sidebar-item.active {
+      background: linear-gradient(90deg, rgba(255,107,53,0.12), transparent);
+      border-left: 2px solid var(--accent);
+    }
+
+    .demo-main { display: flex; flex-direction: column; gap: 12px; }
+
+    .demo-topbar {
+      height: 38px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.04);
+      border-radius: 10px;
+    }
+
+    .demo-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px; flex: 1;
+    }
+
+    .demo-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.04);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+
+    .demo-card-line {
+      height: 6px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 3px;
+    }
+    .demo-card-line:nth-child(1) { width: 60%; }
+    .demo-card-line:nth-child(2) { width: 80%; }
+    .demo-card-line:nth-child(3) { width: 40%; }
+
+    /* Annotations */
+    .ann { position: absolute; pointer-events: none; }
+
+    /* Annotation: red circle around the topbar — "add search here" */
+    .ann-circle {
+      top: 7%; left: 55%;
+      width: 180px; height: 52px;
+    }
+
+    .ann-circle ellipse {
+      fill: none; stroke: var(--red); stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-dasharray: 420; stroke-dashoffset: 420;
+      filter: drop-shadow(0 0 6px rgba(239,68,68,0.4));
+    }
+
+    .demo-window.visible .ann-circle ellipse {
+      animation: drawLine 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.8s forwards;
+    }
+
+    /* Annotation: green text above the circle */
+    .ann-text-label {
+      top: 0%; left: 60%;
+      color: var(--green);
+      font-size: 13px; font-weight: 700;
+      font-family: 'Satoshi', sans-serif;
+      filter: drop-shadow(0 0 8px rgba(74,222,128,0.4));
+      opacity: 0;
+    }
+
+    .demo-window.visible .ann-text-label {
+      animation: typeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) 1.2s forwards;
+    }
+
+    @keyframes typeIn {
+      0% { opacity: 0; transform: translateY(6px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Annotation: blue arrow between card 1 and card 2 — "swap these" */
+    .ann-arrow {
+      top: 52%; left: 36%;
+      width: 80px; height: 40px;
+    }
+
+    .ann-arrow line, .ann-arrow polyline {
+      fill: none; stroke: var(--blue); stroke-width: 2.5;
+      stroke-linecap: round; stroke-linejoin: round;
+      stroke-dasharray: 120; stroke-dashoffset: 120;
+      filter: drop-shadow(0 0 6px rgba(96,165,250,0.4));
+    }
+
+    .demo-window.visible .ann-arrow line,
+    .demo-window.visible .ann-arrow polyline {
+      animation: drawLine 0.5s cubic-bezier(0.16, 1, 0.3, 1) 1.6s forwards;
+    }
+
+    /* Annotation: second text label for the arrow */
+    .ann-text-swap {
+      top: 43%; left: 36%;
+      color: var(--blue);
+      font-size: 12px; font-weight: 700;
+      font-family: 'Satoshi', sans-serif;
+      filter: drop-shadow(0 0 8px rgba(96,165,250,0.4));
+      opacity: 0;
+    }
+
+    .demo-window.visible .ann-text-swap {
+      animation: typeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) 2.0s forwards;
+    }
+
+    /* Annotation: amber highlight on sidebar — "make collapsible" */
+    .ann-highlight {
+      top: 10%; left: 4%;
+      width: 130px; height: 230px;
+      border: 2px solid rgba(251,191,36,0.35);
+      background: rgba(251,191,36,0.04);
+      border-radius: 8px; opacity: 0;
+    }
+
+    .demo-window.visible .ann-highlight {
+      animation: fadeIn 0.5s ease 2.4s forwards;
+    }
+
+    .ann-text-sidebar {
+      top: 88%; left: 4%;
+      color: var(--amber);
+      font-size: 11px; font-weight: 700;
+      font-family: 'Satoshi', sans-serif;
+      filter: drop-shadow(0 0 6px rgba(251,191,36,0.4));
+      opacity: 0;
+      white-space: nowrap;
+    }
+
+    .demo-window.visible .ann-text-sidebar {
+      animation: typeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) 2.8s forwards;
+    }
+
+    @keyframes fadeIn { to { opacity: 1; } }
+
+    /* --- Sage section (workflow + features + install) --- */
+    .sage-section {
+      background: var(--sage);
+      position: relative;
+    }
+
+    /* Character floating between sections */
+    .section-character {
+      position: absolute;
+      right: 48px;
+      top: -80px;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .section-character img {
+      width: 220px; height: auto;
+      filter: drop-shadow(0 16px 32px rgba(0,0,0,0.12));
+      animation: float 5s ease-in-out infinite;
+      animation-delay: -2s;
+    }
+
+    .section {
+      padding: 140px 24px;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--dark-muted);
+      margin-bottom: 16px;
+    }
+
+    .section-heading {
+      font-size: clamp(32px, 4.5vw, 52px);
+      font-weight: 900;
+      letter-spacing: -0.035em;
+      margin-bottom: 16px;
+      line-height: 1.05;
+      color: var(--dark);
+    }
+
+    .section-heading.centered { text-align: center; }
+    .section-label.centered { text-align: center; }
+
+    .section-desc {
+      font-size: 17px;
+      color: var(--dark-secondary);
+      max-width: 500px;
+      line-height: 1.7;
+    }
+
+    .section-desc.centered {
+      text-align: center;
+      margin: 0 auto;
+    }
+
+    .divider {
+      width: 100%; max-width: 1080px;
+      margin: 0 auto;
+      height: 1px;
+      background: rgba(0,0,0,0.06);
+    }
+
+    /* --- Steps: Zig-zag layout instead of 3-column cards --- */
+    .steps-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-top: 64px;
+      counter-reset: step;
+    }
+
+    .step-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+      padding: 48px 0;
+      border-top: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .step-row:last-child { border-bottom: 1px solid rgba(0,0,0,0.06); }
+
+    .step-row:nth-child(even) .step-content { order: 2; }
+    .step-row:nth-child(even) .step-visual { order: 1; }
+
+    .step-number {
+      display: inline-flex;
+      align-items: center; justify-content: center;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--dark);
+      color: #fff;
+      font-size: 15px; font-weight: 700;
+      margin-bottom: 20px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .step-content h3 {
+      font-size: 24px; font-weight: 900;
+      margin-bottom: 10px;
+      letter-spacing: -0.03em;
+      color: var(--dark);
+    }
+
+    .step-content p {
+      font-size: 15px;
+      color: var(--dark-secondary);
+      line-height: 1.7;
+      max-width: 380px;
+    }
+
+    .step-visual {
+      height: 220px;
+      border-radius: 16px;
+      background: #0c0c0e;
+      border: 1px solid rgba(255,255,255,0.04);
+      box-shadow: 0 12px 40px -10px rgba(0,0,0,0.2);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .step-visual-bar {
+      display: flex; align-items: center; gap: 6px;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .step-visual-bar .dot { width: 8px; height: 8px; border-radius: 50%; opacity: 0.5; }
+    .step-visual-bar .dot:nth-child(1) { background: #ff5f57; }
+    .step-visual-bar .dot:nth-child(2) { background: #febc2e; }
+    .step-visual-bar .dot:nth-child(3) { background: #28c840; }
+
+    .step-visual-bar span {
+      flex: 1; text-align: center;
+      font-size: 10px; color: rgba(255,255,255,0.2);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .step-visual-body {
+      padding: 14px;
+      position: relative;
+      height: calc(100% - 34px);
+    }
+
+    /* Mini UI mockup lines */
+    .mock-nav { height: 8px; width: 100%; background: rgba(255,255,255,0.03); border-radius: 4px; margin-bottom: 10px; }
+    .mock-row { display: flex; gap: 8px; flex: 1; }
+    .mock-sidebar { width: 50px; background: rgba(255,255,255,0.02); border-radius: 6px; border: 1px solid rgba(255,255,255,0.03); }
+    .mock-main { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+    .mock-card { flex: 1; background: rgba(255,255,255,0.02); border-radius: 6px; border: 1px solid rgba(255,255,255,0.03); }
+    .mock-cards-row { display: flex; gap: 6px; flex: 1; }
+    .mock-hero { height: 40px; background: rgba(255,255,255,0.02); border-radius: 6px; border: 1px solid rgba(255,255,255,0.03); margin-bottom: 6px; }
+
+    /* Annotation overlays for step 2 — realistic: circle hero, label cards */
+    .mock-ann-circle {
+      position: absolute;
+      top: 38px; left: 50px;
+      width: 160px; height: 28px;
+      border: 2px solid var(--red);
+      border-radius: 50%;
+      opacity: 0.9;
+      filter: drop-shadow(0 0 4px rgba(239,68,68,0.3));
+    }
+
+    .mock-ann-arrow {
+      position: absolute;
+      top: 58px; left: 110px;
+      width: 2px; height: 30px;
+      background: var(--blue);
+      filter: drop-shadow(0 0 4px rgba(96,165,250,0.3));
+    }
+
+    .mock-ann-arrow::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: -4px;
+      border: 5px solid transparent;
+      border-top: 6px solid var(--blue);
+    }
+
+    .mock-ann-text {
+      position: absolute;
+      top: 92px; left: 70px;
+      font-size: 9px; font-weight: 700;
+      color: var(--green);
+      font-family: 'Satoshi', sans-serif;
+      filter: drop-shadow(0 0 4px rgba(74,222,128,0.3));
+      white-space: nowrap;
+    }
+
+    .mock-ann-highlight {
+      position: absolute;
+      top: 105px; left: 50px;
+      right: 12px; height: 42px;
+      border: 1.5px solid rgba(251,191,36,0.5);
+      background: rgba(251,191,36,0.06);
+      border-radius: 3px;
+    }
+
+    /* Terminal mockup for step 3 */
+    .mock-terminal {
+      display: flex; flex-direction: column; gap: 8px;
+      height: 100%;
+    }
+
+    .mock-terminal-line {
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .mock-prompt {
+      color: var(--green);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+    }
+
+    .mock-cmd {
+      color: rgba(255,255,255,0.5);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+    }
+
+    .mock-response {
+      color: rgba(255,255,255,0.3);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      line-height: 1.6;
+      padding-left: 4px;
+    }
+
+    .mock-check {
+      color: var(--green);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+    }
+
+    /* --- Modes: CLI vs Desktop --- */
+    .modes-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 64px;
+    }
+
+    .mode-card {
+      background: rgba(255,255,255,0.25);
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 20px;
+      padding: 36px 32px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .mode-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.05);
+    }
+
+    .mode-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 20px;
+      width: fit-content;
+    }
+
+    .mode-badge.cli {
+      background: rgba(0,0,0,0.08);
+      color: var(--dark);
+    }
+
+    .mode-badge.desktop {
+      background: rgba(255,107,53,0.12);
+      color: var(--accent);
+    }
+
+    .mode-badge svg {
+      width: 14px; height: 14px;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+      fill: none;
+    }
+
+    .mode-card h3 {
+      font-size: 22px; font-weight: 900;
+      margin-bottom: 10px;
+      letter-spacing: -0.03em;
+      color: var(--dark);
+    }
+
+    .mode-card > p {
+      font-size: 15px;
+      color: var(--dark-secondary);
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+
+    .mode-steps {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: auto;
+    }
+
+    .mode-steps li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--dark-secondary);
+      line-height: 1.6;
+    }
+
+    .mode-steps li .step-icon {
+      flex-shrink: 0;
+      width: 24px; height: 24px;
+      border-radius: 6px;
+      background: rgba(0,0,0,0.06);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+      color: var(--dark-muted);
+      margin-top: 1px;
+    }
+
+    .mode-visual {
+      margin-top: 24px;
+      border-radius: 12px;
+      background: #0c0c0e;
+      border: 1px solid rgba(255,255,255,0.04);
+      padding: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.4);
+      overflow: hidden;
+    }
+
+    .mode-visual .prompt { color: var(--green); }
+    .mode-visual .cmd { color: rgba(255,255,255,0.6); }
+    .mode-visual .dim { color: rgba(255,255,255,0.2); }
+    .mode-visual .accent { color: var(--accent); }
+
+    .mode-kbd {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 8px;
+      background: rgba(0,0,0,0.08);
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--dark);
+      box-shadow: 0 1px 0 rgba(0,0,0,0.08);
+    }
+
+    /* --- Install background --- */
+    .install-bg {
+      background: #fff;
+    }
+
+    /* --- Install --- */
+    .install-section {
+      display: flex; flex-direction: column; align-items: center;
+      margin-top: 0;
+      gap: 24px;
+    }
+
+    .code-window {
+      width: 100%; max-width: 600px;
+      background: #0c0c0e;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.03),
+        0 20px 60px -15px rgba(0,0,0,0.25);
+      position: relative;
+    }
+
+    .code-header {
+      display: flex; align-items: center; gap: 7px;
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .code-header-dot { width: 9px; height: 9px; border-radius: 50%; }
+    .code-header-dot:nth-child(1) { background: #ff5f57; opacity: 0.5; }
+    .code-header-dot:nth-child(2) { background: #febc2e; opacity: 0.5; }
+    .code-header-dot:nth-child(3) { background: #28c840; opacity: 0.5; }
+
+    .code-header-title {
+      flex: 1; text-align: center;
+      font-size: 11px; color: rgba(255,255,255,0.2);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 52px; right: 14px;
+      padding: 5px 10px;
+      font-size: 11px; font-weight: 500;
+      color: rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      transition: all 0.2s;
+      z-index: 2;
+    }
+    .copy-btn:hover { color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.06); }
+    .copy-btn.copied { color: var(--green); }
+
+    .code-body {
+      padding: 22px 26px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px; line-height: 1.9;
+      overflow-x: auto; white-space: pre;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .code-body .cm { color: rgba(255,255,255,0.18); }
+    .code-body .k { color: var(--accent); }
+    .code-body .s { color: var(--green); }
+    .code-body .p { color: rgba(255,255,255,0.3); }
+
+    .install-hint {
+      margin-top: 0;
+      font-size: 15px;
+      color: var(--dark-secondary);
+    }
+
+    .install-hint code {
+      color: #fff;
+      background: var(--blue);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* --- Footer --- */
+    footer {
+      padding: 56px 24px;
+      text-align: center;
+      border-top: 1px solid rgba(0,0,0,0.04);
+      background: var(--sage);
+      display: flex; align-items: center; justify-content: center; gap: 20px;
+    }
+
+    footer p { font-size: 13px; color: var(--dark-muted); letter-spacing: -0.01em; }
+
+    footer a {
+      color: var(--dark-secondary); text-decoration: none;
+      transition: color 0.2s;
+      display: inline-flex; align-items: center;
+    }
+    footer a:hover { color: var(--dark); }
+    footer a svg { width: 18px; height: 18px; }
+
+    /* --- Responsive --- */
+    @media (max-width: 768px) {
+      .hero-character img { width: 160px; }
+      .step-row { grid-template-columns: 1fr; gap: 24px; }
+      .step-row:nth-child(even) .step-content { order: 1; }
+      .step-row:nth-child(even) .step-visual { order: 2; }
+      .step-visual { height: 140px; }
+      .modes-grid { grid-template-columns: 1fr; }
+      .demo-layout { grid-template-columns: 1fr; }
+      .demo-sidebar { display: none; }
+      .section-character { display: none; }
+    }
+
+    @media (max-width: 480px) {
+      .modes-grid { grid-template-columns: 1fr; }
+      .hero-actions { flex-direction: column; align-items: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Minimal logo -->
+  <div class="top-logo"><img src="/logo.png" alt="Blip" /></div>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-headline reveal">
+      <div class="hero-character">
+        <img src="/landing/hero-1.png" alt="Blip mascot" />
+      </div>
+
+      <h1 class="h1-line1" style="margin-bottom: 8px;">Stop describing.</h1>
+      <h1 class="h1-line2">
+        <span class="highlight">Start drawing.
+          <svg class="hand-underline" viewBox="0 0 200 12" preserveAspectRatio="none">
+            <path d="M3 9 Q50 2 100 7 Q150 12 197 5" />
+          </svg>
+        </span>
+      </h1>
+
+      <p class="hero-sub reveal reveal-d3">
+        Draw directly on your preview to tell Claude what to change. Circles, arrows, highlights -- visual feedback that eliminates ambiguity. Free and open source.
+      </p>
+
+      <div class="hero-actions reveal reveal-d4">
+        <a href="#install" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+          Get started
+        </a>
+        <a href="https://github.com" class="btn btn-ghost" target="_blank">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+
+    <!-- Sparkles -->
+    <div class="sparkle" style="top: 15%; right: 12%;">
+      <svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 0l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>
+    </div>
+    <div class="sparkle" style="top: 70%; left: 8%; animation-delay: -1.5s;">
+      <svg width="12" height="12" viewBox="0 0 16 16"><path d="M8 0l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>
+    </div>
+  </section>
+
+  <!-- Demo -->
+  <section class="demo-section">
+    <div class="demo-window reveal">
+      <div class="demo-titlebar">
+        <div class="demo-dot"></div>
+        <div class="demo-dot"></div>
+        <div class="demo-dot"></div>
+        <span class="demo-titlebar-text">localhost:3000</span>
+        <span class="demo-frame-label">Frame</span>
+      </div>
+      <div class="demo-body">
+        <div class="demo-layout">
+          <div class="demo-sidebar">
+            <div class="demo-sidebar-item"></div>
+            <div class="demo-sidebar-item"></div>
+            <div class="demo-sidebar-item active"></div>
+            <div class="demo-sidebar-item"></div>
+          </div>
+          <div class="demo-main">
+            <div class="demo-topbar"></div>
+            <div class="demo-cards">
+              <div class="demo-card">
+                <div class="demo-card-line"></div>
+                <div class="demo-card-line"></div>
+                <div class="demo-card-line"></div>
+              </div>
+              <div class="demo-card">
+                <div class="demo-card-line"></div>
+                <div class="demo-card-line"></div>
+                <div class="demo-card-line"></div>
+              </div>
+              <div class="demo-card">
+                <div class="demo-card-line"></div>
+                <div class="demo-card-line"></div>
+                <div class="demo-card-line"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Circle the topbar right area -->
+        <svg class="ann ann-circle" viewBox="0 0 180 52">
+          <ellipse cx="90" cy="26" rx="85" ry="22" />
+        </svg>
+        <div class="ann ann-text-label">add search bar here</div>
+
+        <!-- Arrow between card 1 and card 2 suggesting swap -->
+        <svg class="ann ann-arrow" viewBox="0 0 80 40">
+          <line x1="5" y1="30" x2="70" y2="10" />
+          <polyline points="60,5 72,10 62,18" />
+        </svg>
+        <div class="ann ann-text-swap">swap these two</div>
+
+        <!-- Highlight the sidebar -->
+        <div class="ann ann-highlight"></div>
+        <div class="ann ann-text-sidebar">make collapsible</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sage background for remaining sections -->
+  <div class="sage-section">
+    <!-- Character between sections -->
+    <div class="section-character reveal">
+      <img src="/landing/hero-2.png" alt="Blip mascot" />
+    </div>
+
+    <!-- How it works -->
+    <section class="section" id="how">
+      <p class="section-label reveal">Workflow</p>
+      <h2 class="section-heading reveal reveal-d1">Three steps. Zero ambiguity.</h2>
+      <p class="section-desc reveal reveal-d2">From preview to annotated screenshot in seconds.</p>
+
+      <div class="steps-grid">
+        <div class="step-row reveal">
+          <div class="step-content">
+            <div class="step-number">1</div>
+            <h3>Preview your UI</h3>
+            <p>Claude opens a live preview of your app. You spot something that needs to change.</p>
+          </div>
+          <div class="step-visual">
+            <div class="step-visual-bar">
+              <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+              <span>localhost:3000</span>
+            </div>
+            <div class="step-visual-body" style="display:flex;flex-direction:column;">
+              <div class="mock-nav"></div>
+              <div class="mock-row">
+                <div class="mock-sidebar"></div>
+                <div class="mock-main">
+                  <div class="mock-hero"></div>
+                  <div class="mock-cards-row">
+                    <div class="mock-card"></div>
+                    <div class="mock-card"></div>
+                    <div class="mock-card"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="step-row reveal reveal-d1">
+          <div class="step-content">
+            <div class="step-number">2</div>
+            <h3>Draw on it</h3>
+            <p>Circle a button, draw an arrow, add a text label. Visual intent, zero ambiguity.</p>
+          </div>
+          <div class="step-visual">
+            <div class="step-visual-bar">
+              <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+              <span>localhost:3000</span>
+            </div>
+            <div class="step-visual-body" style="display:flex;flex-direction:column;">
+              <div class="mock-nav"></div>
+              <div class="mock-row">
+                <div class="mock-sidebar"></div>
+                <div class="mock-main">
+                  <div class="mock-hero"></div>
+                  <div class="mock-cards-row">
+                    <div class="mock-card"></div>
+                    <div class="mock-card"></div>
+                    <div class="mock-card"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="mock-ann-circle"></div>
+              <div class="mock-ann-arrow"></div>
+              <div class="mock-ann-text">add more padding here</div>
+              <div class="mock-ann-highlight"></div>
+            </div>
+          </div>
+        </div>
+        <div class="step-row reveal reveal-d2">
+          <div class="step-content">
+            <div class="step-number">3</div>
+            <h3>Claude acts on it</h3>
+            <p>The annotated screenshot goes back to Claude. It sees exactly what you mean and updates the code.</p>
+          </div>
+          <div class="step-visual">
+            <div class="step-visual-bar">
+              <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+              <span>claude code</span>
+            </div>
+            <div class="step-visual-body">
+              <div class="mock-terminal">
+                <div class="mock-terminal-line">
+                  <span class="mock-prompt">$</span>
+                  <span class="mock-cmd">annotate</span>
+                </div>
+                <div class="mock-response">
+                  Received annotated screenshot.<br>
+                  Found 3 annotations:<br>
+                  &nbsp;&nbsp;- circle on sidebar nav<br>
+                  &nbsp;&nbsp;- arrow: "move this up"<br>
+                  &nbsp;&nbsp;- highlight on card grid
+                </div>
+                <div style="margin-top: 6px;">
+                  <span class="mock-check">&#10003;</span>
+                  <span class="mock-cmd" style="color: rgba(255,255,255,0.4);"> Updated 2 files</span>
+                </div>
+                <div class="mock-terminal-line">
+                  <span class="mock-check">&#10003;</span>
+                  <span class="mock-cmd" style="color: rgba(255,255,255,0.4);"> Preview refreshed</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How it works: CLI vs Desktop -->
+    <section class="section" id="features" style="padding-top: 80px;">
+      <p class="section-label centered reveal">How it works</p>
+      <h2 class="section-heading centered reveal reveal-d1">Two ways to annotate.</h2>
+      <p class="section-desc centered reveal reveal-d2">Same drawing tools. Different starting points.</p>
+
+      <div class="modes-grid">
+        <div class="mode-card reveal">
+          <div class="mode-badge cli">
+            <svg viewBox="0 0 24 24" stroke="currentColor"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            Terminal
+          </div>
+          <h3>Draw in browser</h3>
+          <p>For CLI users. Opens your page in a browser with the drawing overlay injected. Annotate, hit send, screenshot goes straight back to Claude.</p>
+
+          <ul class="mode-steps">
+            <li><span class="step-icon">1</span>Tell Claude: "annotate"</li>
+            <li><span class="step-icon">2</span>Browser opens with drawing tools on your page</li>
+            <li><span class="step-icon">3</span>Draw annotations, click "Send to Claude"</li>
+            <li><span class="step-icon">4</span>Screenshot appears inline in your terminal session</li>
+          </ul>
+
+          <div class="mode-visual">
+            <span class="prompt">$</span> <span class="cmd">annotate</span><br>
+            <span class="dim">Opening browser with overlay...</span><br>
+            <span class="dim">Waiting for annotations...</span><br>
+            <span class="prompt">&#10003;</span> <span class="cmd">Received annotated screenshot</span>
+          </div>
+        </div>
+
+        <div class="mode-card reveal reveal-d1">
+          <div class="mode-badge desktop">
+            <svg viewBox="0 0 24 24" stroke="currentColor"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            Desktop app
+          </div>
+          <h3>Draw in preview</h3>
+          <p>For Claude Code desktop users. Draw directly on the live preview. Your annotations get added to the chat with one shortcut.</p>
+
+          <ul class="mode-steps">
+            <li><span class="step-icon">1</span>Preview is already open in Claude Code</li>
+            <li><span class="step-icon">2</span>Click the pencil FAB to activate drawing tools</li>
+            <li><span class="step-icon">3</span>Draw circles, arrows, text on the live preview</li>
+            <li><span class="step-icon">4</span>Press <span class="mode-kbd">Ctrl+P</span> to add screenshot to chat</li>
+          </ul>
+
+          <div class="mode-visual">
+            <span class="accent">Preview</span> <span class="dim">localhost:3000</span><br>
+            <span class="dim">[drawing overlay active]</span><br>
+            <span class="dim">2 annotations added</span><br>
+            <span class="prompt">&#10003;</span> <span class="cmd">Screenshot added to chat</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Install -->
+  <div class="install-bg">
+    <section class="section install-section" id="install">
+      <p class="section-label centered reveal">Setup</p>
+      <h2 class="section-heading centered reveal reveal-d1">One config. You're in.</h2>
+      <p class="section-desc centered reveal reveal-d2">Add Blip to your Claude Code MCP settings.</p>
+
+      <div class="code-window reveal reveal-d3">
+        <div class="code-header">
+          <div class="code-header-dot"></div>
+          <div class="code-header-dot"></div>
+          <div class="code-header-dot"></div>
+          <span class="code-header-title">.mcp.json</span>
+          <div style="width: 24px;"></div>
+        </div>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <div class="code-body" id="code-content"><span class="cm">// Add to your Claude Code MCP settings:</span>
+<span class="p">{</span>
+  <span class="k">"mcpServers"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="k">"blip"</span><span class="p">:</span> <span class="p">{</span>
+      <span class="k">"command"</span><span class="p">:</span> <span class="s">"node"</span><span class="p">,</span>
+      <span class="k">"args"</span><span class="p">:</span> <span class="p">[</span><span class="s">"path/to/blip/dist/index.js"</span><span class="p">]</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span></div>
+      </div>
+
+      <p class="install-hint reveal reveal-d4">
+        Then tell Claude: <code>"annotate"</code>
+      </p>
+    </section>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>Blip -- Free and open source visual annotation for AI coding.</p>
+    <a href="https://github.com" target="_blank" aria-label="GitHub">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+    </a>
+  </footer>
+
+  <script>
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    function copyCode(btn) {
+      const code = document.getElementById('code-content').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+      });
+    }
+  </script>
+
+  <script src="/overlay.js"></script>
+
+</body>
+</html>

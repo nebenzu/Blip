@@ -1,0 +1,11 @@
+node_modules/
+dist/
+screenshots/
+Blip/
+.claude/
+.mcp.json
+.DS_Store
+*.png
+!public/**
+!logo.png
+!landing/**/*.png
