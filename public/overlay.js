@@ -489,6 +489,14 @@
           allowTaint: true,
           logging: false,
         });
+      } catch (captureErr) {
+        // html2canvas fails on modern CSS (oklab, oklch, etc.) -- fall back to white bg
+        pageBg = document.createElement('canvas');
+        pageBg.width = cssW;
+        pageBg.height = cssH;
+        const fallbackCtx = pageBg.getContext('2d');
+        fallbackCtx.fillStyle = '#ffffff';
+        fallbackCtx.fillRect(0, 0, cssW, cssH);
       } finally {
         restoreVh();
         overlay.style.display = '';
