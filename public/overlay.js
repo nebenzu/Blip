@@ -3,13 +3,14 @@
 // Canvas covers the FULL document so you can scroll and annotate anywhere.
 
 (function () {
-  if (window.__blip) return;
-  window.__blip = true;
-
-  // Detect the annotation server origin from this script's src URL
-  // This is needed because proxy pages set <base> to the original site
+  // Capture origin immediately -- document.currentScript is only available during
+  // synchronous execution and will be null after React hydration replaces the DOM.
   const _dicScript = document.currentScript;
   const _dicOrigin = _dicScript ? new URL(_dicScript.src).origin : '';
+
+  function init() {
+    // Guard: check if overlay DOM already exists (not a JS flag, which survives hydration)
+    if (document.getElementById('dic-overlay')) return;
 
   let active = false;
   let tool = 'pen';
@@ -640,4 +641,36 @@
   window.addEventListener('resize', () => {
     if (active) resizeCanvas();
   });
+
+  } // end init()
+
+  // Delay injection so React/Next.js hydration can finish first.
+  // Try after a short delay, then watch for removal and re-inject.
+  function tryInit() {
+    if (document.getElementById('dic-overlay')) return;
+    if (document.body) {
+      init();
+    }
+  }
+
+  // First attempt: wait for hydration to settle
+  if (document.readyState === 'complete') {
+    setTimeout(tryInit, 500);
+  } else {
+    window.addEventListener('load', () => setTimeout(tryInit, 500));
+  }
+
+  // Safety net: if React hydration removes our elements, re-inject
+  const _blipObserver = new MutationObserver(() => {
+    if (!document.getElementById('dic-overlay') && document.body) {
+      init();
+    }
+  });
+  if (document.body) {
+    _blipObserver.observe(document.body, { childList: true, subtree: false });
+  } else {
+    document.addEventListener('DOMContentLoaded', () => {
+      _blipObserver.observe(document.body, { childList: true, subtree: false });
+    });
+  }
 })();

@@ -88,4 +88,12 @@ async function main() {
   await server.connect(transport);
 }
 
+// Prevent silent crashes -- send clean error to MCP client
+process.on('uncaughtException', (err) => {
+  process.stderr.write(`[blip] Uncaught exception: ${err.message}\n`);
+});
+process.on('unhandledRejection', (reason) => {
+  process.stderr.write(`[blip] Unhandled rejection: ${reason}\n`);
+});
+
 main().catch(console.error);
