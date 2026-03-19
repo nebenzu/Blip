@@ -22,6 +22,7 @@ type ResolveCallback = (result: AnnotationResult) => void;
 let pendingResolve: ResolveCallback | null = null;
 let server: Server | null = null;
 let serverPort = 0;
+let proxyTarget: string | null = null;
 
 export async function startAnnotationServer(port = 4461): Promise<number> {
   if (server) return serverPort;
@@ -52,20 +53,24 @@ export async function startAnnotationServer(port = 4461): Promise<number> {
     }
 
     try {
+      // Store target origin for catch-all proxy
+      const parsedTarget = new URL(targetUrl);
+      proxyTarget = parsedTarget.origin;
+
       const response = await fetch(targetUrl);
       let html = await response.text();
       const contentType = response.headers.get('content-type') || 'text/html';
 
       if (contentType.includes('text/html')) {
-        // Inject overlay script before </body>
-        const overlayScript = `<script src="/overlay.js?v=${Date.now()}"></script>`;
+        // Inject overlay script before </body> (use absolute URL to avoid <base> tag redirect)
+        const overlayScript = `<script src="http://localhost:${serverPort}/overlay.js?v=${Date.now()}"></script>`;
         if (html.includes('</body>')) {
           html = html.replace('</body>', `${overlayScript}\n</body>`);
         } else {
           html += overlayScript;
         }
 
-        // Rewrite relative URLs to point back to the target origin
+        // Add <base> so the app's own assets and API calls resolve to the target origin
         const url = new URL(targetUrl);
         const base = `<base href="${url.origin}/">`;
         if (html.includes('<head>')) {
@@ -182,6 +187,36 @@ export async function startAnnotationServer(port = 4461): Promise<number> {
     } catch (err) {
       // Save error
       res.status(500).json({ error: 'Failed to save' });
+    }
+  });
+
+  // Catch-all: proxy unknown requests to the target server
+  app.use(async (req, res) => {
+    if (!proxyTarget) {
+      res.status(404).send('Not found');
+      return;
+    }
+    try {
+      const targetUrl = `${proxyTarget}${req.originalUrl}`;
+      const headers: Record<string, string> = {};
+      for (const [key, value] of Object.entries(req.headers)) {
+        if (typeof value === 'string' && key !== 'host') headers[key] = value;
+      }
+      const fetchRes = await fetch(targetUrl, {
+        method: req.method,
+        headers,
+        body: ['GET', 'HEAD'].includes(req.method) ? undefined : req.body,
+      });
+      res.status(fetchRes.status);
+      fetchRes.headers.forEach((value, key) => {
+        if (!['transfer-encoding', 'content-encoding', 'connection'].includes(key.toLowerCase())) {
+          res.setHeader(key, value);
+        }
+      });
+      const buffer = Buffer.from(await fetchRes.arrayBuffer());
+      res.send(buffer);
+    } catch {
+      res.status(502).send('Proxy error');
     }
   });
 
