@@ -1206,27 +1206,19 @@
   <div class="install-bg">
     <section class="section install-section" id="install">
       <p class="section-label centered reveal">Setup</p>
-      <h2 class="section-heading centered reveal reveal-d1">One config. You're in.</h2>
-      <p class="section-desc centered reveal reveal-d2">Add Blip to your Claude Code MCP settings.</p>
+      <h2 class="section-heading centered reveal reveal-d1">One command. You're in.</h2>
+      <p class="section-desc centered reveal reveal-d2">Run this in your terminal to add Blip to Claude Code.</p>
 
       <div class="code-window reveal reveal-d3">
         <div class="code-header">
           <div class="code-header-dot"></div>
           <div class="code-header-dot"></div>
           <div class="code-header-dot"></div>
-          <span class="code-header-title">.mcp.json</span>
+          <span class="code-header-title">terminal</span>
           <div style="width: 24px;"></div>
         </div>
         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-        <div class="code-body" id="code-content"><span class="cm">// Add to your Claude Code MCP settings:</span>
-<span class="p">{</span>
-  <span class="k">"mcpServers"</span><span class="p">:</span> <span class="p">{</span>
-    <span class="k">"blip"</span><span class="p">:</span> <span class="p">{</span>
-      <span class="k">"command"</span><span class="p">:</span> <span class="s">"node"</span><span class="p">,</span>
-      <span class="k">"args"</span><span class="p">:</span> <span class="p">[</span><span class="s">"./Blip/dist/index.js"</span><span class="p">]</span>
-    <span class="p">}</span>
-  <span class="p">}</span>
-<span class="p">}</span></div>
+        <div class="code-body" id="code-content"><span class="p">claude mcp add blip -- npx blip-mcp</span></div>
       </div>
 
       <p class="install-hint reveal reveal-d4">
