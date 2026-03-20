@@ -805,7 +805,7 @@
 
     /* --- Install background --- */
     .install-bg {
-      background: #fff;
+      background: #e8f4fd;
     }
 
     /* --- Install --- */
@@ -1121,7 +1121,7 @@
               <div class="mock-terminal">
                 <div class="mock-terminal-line">
                   <span class="mock-prompt">$</span>
-                  <span class="mock-cmd">annotate</span>
+                  <span class="mock-cmd">blip</span>
                 </div>
                 <div class="mock-response">
                   Received annotated screenshot.<br>
@@ -1145,56 +1145,26 @@
       </div>
     </section>
 
-    <!-- How it works: CLI vs Desktop -->
+    <!-- How it works -->
     <section class="section" id="features" style="padding-top: 80px;">
       <p class="section-label centered reveal">How it works</p>
-      <h2 class="section-heading centered reveal reveal-d1">Two ways to annotate.</h2>
-      <p class="section-desc centered reveal reveal-d2">Same drawing tools. Different starting points.</p>
+      <h2 class="section-heading centered reveal reveal-d1">One word. That's it.</h2>
+      <p class="section-desc centered reveal reveal-d2">Tell Claude "blip" and a browser opens with your page and drawing tools.</p>
 
-      <div class="modes-grid">
-        <div class="mode-card reveal">
-          <div class="mode-badge cli">
-            <svg viewBox="0 0 24 24" stroke="currentColor"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-            Terminal
-          </div>
-          <h3>Draw in browser</h3>
-          <p>For CLI users. Opens your page in a browser with the drawing overlay injected. Annotate, hit send, screenshot goes straight back to Claude.</p>
-
+      <div class="modes-grid" style="max-width: 540px; margin: 0 auto;">
+        <div class="mode-card reveal" style="width: 100%;">
           <ul class="mode-steps">
-            <li><span class="step-icon">1</span>Tell Claude: "annotate"</li>
+            <li><span class="step-icon">1</span>Tell Claude: "blip"</li>
             <li><span class="step-icon">2</span>Browser opens with drawing tools on your page</li>
-            <li><span class="step-icon">3</span>Draw annotations, click "Send to Claude"</li>
-            <li><span class="step-icon">4</span>Screenshot appears inline in your terminal session</li>
+            <li><span class="step-icon">3</span>Draw circles, arrows, highlights, text</li>
+            <li><span class="step-icon">4</span>Click "Send to Claude" -- done</li>
           </ul>
 
           <div class="mode-visual">
-            <span class="prompt">$</span> <span class="cmd">annotate</span><br>
+            <span class="prompt">$</span> <span class="cmd">blip</span><br>
             <span class="dim">Opening browser with overlay...</span><br>
             <span class="dim">Waiting for annotations...</span><br>
-            <span class="prompt">&#10003;</span> <span class="cmd">Received annotated screenshot</span>
-          </div>
-        </div>
-
-        <div class="mode-card reveal reveal-d1">
-          <div class="mode-badge desktop">
-            <svg viewBox="0 0 24 24" stroke="currentColor"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-            Desktop app
-          </div>
-          <h3>Draw in preview</h3>
-          <p>For Claude Code desktop users. Draw directly on the live preview. Your annotations get added to the chat with one shortcut.</p>
-
-          <ul class="mode-steps">
-            <li><span class="step-icon">1</span>Preview is already open in Claude Code</li>
-            <li><span class="step-icon">2</span>Click the pencil FAB to activate drawing tools</li>
-            <li><span class="step-icon">3</span>Draw circles, arrows, text on the live preview</li>
-            <li><span class="step-icon">4</span>Press <span class="mode-kbd">Ctrl+P</span> to add screenshot to chat</li>
-          </ul>
-
-          <div class="mode-visual">
-            <span class="accent">Preview</span> <span class="dim">localhost:3000</span><br>
-            <span class="dim">[drawing overlay active]</span><br>
-            <span class="dim">2 annotations added</span><br>
-            <span class="prompt">&#10003;</span> <span class="cmd">Screenshot added to chat</span>
+            <span class="prompt">&#10003;</span> <span class="cmd">Annotated screenshot received</span>
           </div>
         </div>
       </div>
@@ -1222,7 +1192,7 @@
       </div>
 
       <p class="install-hint reveal reveal-d4">
-        Then tell Claude: <code>"annotate"</code>
+        Then tell Claude: <code>"blip"</code>
       </p>
     </section>
   </div>
