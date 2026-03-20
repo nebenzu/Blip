@@ -43,11 +43,15 @@ async function buildAnnotationResponse(imagePath: string, extra: Record<string, 
       },
       {
         type: 'text' as const,
-        text: JSON.stringify({
-          annotated_image_path: imagePath,
-          metadata,
-          ...extra,
-        }),
+        text: `The user has annotated a screenshot with visual feedback. Study the image carefully:
+- RED circles/rectangles = elements that need changes
+- ARROWS = point to specific areas or show movement
+- HIGHLIGHTS = regions of interest
+- TEXT labels = direct instructions
+
+Implement every change the annotations indicate. If unclear, describe what you see and ask.
+
+${JSON.stringify({ annotated_image_path: imagePath, metadata, ...extra })}`,
       },
     ],
   };
@@ -61,7 +65,7 @@ const server = new McpServer({
 // Single tool: annotate a live page or open the standalone editor
 server.tool(
   'annotate',
-  'Open a visual annotation editor. The user can draw circles, arrows, highlights, and text on a screenshot. Returns the annotated image directly.',
+  'Open a visual annotation editor so the user can draw on a live page or screenshot. The user draws circles, arrows, highlights, rectangles, and text to show you exactly what they want changed. Returns a screenshot with their annotations overlaid. Study the annotations carefully: circles and rectangles highlight specific elements, arrows point to areas of interest, highlights mark regions, and text labels contain instructions. Implement ALL visual feedback from the annotations.',
   {
     url: z.string().optional().describe('URL of a live page to annotate (e.g., http://localhost:3000). If omitted, opens the standalone editor where you can paste or drop a screenshot.'),
   },

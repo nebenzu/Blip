@@ -1,6 +1,6 @@
 {
   "name": "blip-mcp",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Visual annotation MCP server for Claude Code - draw on preview screenshots to communicate UI changes",
   "type": "module",
   "main": "dist/index.js",
