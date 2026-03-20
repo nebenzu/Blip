@@ -10,3 +10,9 @@ Blip/
 !logo.png
 !landing/**/*.png
 .vercel
+demo-*.gif
+demo-*.mp4
+demo-*.png
+demo-script.sh
+demo.tape
+demo.mp4

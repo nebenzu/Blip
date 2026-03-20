@@ -13,6 +13,10 @@
   <a href="https://www.npmjs.com/package/blip-mcp"><img src="https://img.shields.io/npm/dm/blip-mcp.svg?style=flat-square&color=purple" alt="npm downloads" /></a>
 </p>
 
+<p align="center">
+  <img src="demo.gif" alt="Blip demo" width="700" />
+</p>
+
 ---
 
 ## What it does
