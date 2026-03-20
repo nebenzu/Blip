@@ -500,26 +500,21 @@
 
     /* --- Steps: Zig-zag layout instead of 3-column cards --- */
     .steps-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      margin-top: 64px;
-      counter-reset: step;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px 40px;
+      margin-top: 40px;
     }
 
     .step-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 48px;
-      align-items: center;
-      padding: 48px 0;
-      border-top: 1px solid rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
     }
 
-    .step-row:last-child { border-bottom: 1px solid rgba(0,0,0,0.06); }
+    .step-row:last-child { }
 
-    .step-row:nth-child(even) .step-content { order: 2; }
-    .step-row:nth-child(even) .step-visual { order: 1; }
+    /* 2x2 grid, no alternating */
 
     .step-number {
       display: inline-flex;
@@ -548,7 +543,8 @@
     }
 
     .step-visual {
-      height: 320px;
+      height: 260px;
+      width: 100%;
       border-radius: 16px;
       background: #0c0c0e;
       border: 1px solid rgba(255,255,255,0.04);
@@ -912,9 +908,8 @@
     /* --- Responsive --- */
     @media (max-width: 768px) {
       .hero-character img { width: 160px; }
-      .step-row { grid-template-columns: 1fr; gap: 24px; }
-      .step-row:nth-child(even) .step-content { order: 1; }
-      .step-row:nth-child(even) .step-visual { order: 2; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .step-row { gap: 16px; }
       .step-visual { height: 140px; }
       .modes-grid { grid-template-columns: 1fr; }
       .demo-layout { grid-template-columns: 1fr; }
@@ -1044,32 +1039,30 @@
     <!-- How it works -->
     <section class="section" id="how">
       <p class="section-label reveal">Workflow</p>
-      <h2 class="section-heading reveal reveal-d1">Three steps. Zero ambiguity.</h2>
+      <h2 class="section-heading reveal reveal-d1">Four steps. Zero ambiguity.</h2>
       <p class="section-desc reveal reveal-d2">From preview to annotated screenshot in seconds.</p>
 
       <div class="steps-grid">
         <div class="step-row reveal">
           <div class="step-content">
             <div class="step-number">1</div>
-            <h3>Preview your UI</h3>
-            <p>Claude opens a live preview of your app. You spot something that needs to change.</p>
+            <h3>Say "blip"</h3>
+            <p>Tell Claude "blip" and it opens your page in a browser with drawing tools ready.</p>
           </div>
           <div class="step-visual">
             <div class="step-visual-bar">
               <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-              <span>localhost:3000</span>
+              <span>claude code</span>
             </div>
-            <div class="step-visual-body" style="display:flex;flex-direction:column;">
-              <div class="mock-nav"></div>
-              <div class="mock-row">
-                <div class="mock-sidebar"></div>
-                <div class="mock-main">
-                  <div class="mock-hero"></div>
-                  <div class="mock-cards-row">
-                    <div class="mock-card"></div>
-                    <div class="mock-card"></div>
-                    <div class="mock-card"></div>
-                  </div>
+            <div class="step-visual-body">
+              <div class="mock-terminal">
+                <div class="mock-terminal-line">
+                  <span class="mock-prompt">$</span>
+                  <span class="mock-cmd">blip</span>
+                </div>
+                <div class="mock-response">
+                  Opening browser with overlay...<br>
+                  Waiting for annotations...
                 </div>
               </div>
             </div>
@@ -1106,11 +1099,27 @@
             </div>
           </div>
         </div>
-        <div class="step-row reveal reveal-d2">
+        <div class="step-row reveal reveal-d1">
           <div class="step-content">
             <div class="step-number">3</div>
+            <h3>Send to Claude</h3>
+            <p>Click "Send to Claude". The annotated screenshot goes straight back to your chat.</p>
+          </div>
+          <div class="step-visual">
+            <div class="step-visual-bar">
+              <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+              <span>localhost:3000</span>
+            </div>
+            <div class="step-visual-body" style="display:flex;align-items:center;justify-content:center;">
+              <div style="background: #9b7dd4; color: #fff; padding: 12px 32px; border-radius: 10px; font-size: 13px; font-weight: 700; font-family: 'Satoshi', sans-serif; letter-spacing: 0.02em; box-shadow: 0 4px 16px rgba(155,125,212,0.3);">Send to Claude</div>
+            </div>
+          </div>
+        </div>
+        <div class="step-row reveal reveal-d2">
+          <div class="step-content">
+            <div class="step-number">4</div>
             <h3>Claude acts on it</h3>
-            <p>The annotated screenshot goes back to Claude. It sees exactly what you mean and updates the code.</p>
+            <p>Claude sees exactly what you mean and updates the code. No more describing UI changes with words.</p>
           </div>
           <div class="step-visual">
             <div class="step-visual-bar">
@@ -1145,30 +1154,6 @@
       </div>
     </section>
 
-    <!-- How it works -->
-    <section class="section" id="features" style="padding-top: 80px;">
-      <p class="section-label centered reveal">How it works</p>
-      <h2 class="section-heading centered reveal reveal-d1">One word. That's it.</h2>
-      <p class="section-desc centered reveal reveal-d2">Tell Claude "blip" and a browser opens with your page and drawing tools.</p>
-
-      <div class="modes-grid" style="max-width: 540px; margin: 0 auto;">
-        <div class="mode-card reveal" style="width: 100%;">
-          <ul class="mode-steps">
-            <li><span class="step-icon">1</span>Tell Claude: "blip"</li>
-            <li><span class="step-icon">2</span>Browser opens with drawing tools on your page</li>
-            <li><span class="step-icon">3</span>Draw circles, arrows, highlights, text</li>
-            <li><span class="step-icon">4</span>Click "Send to Claude" -- done</li>
-          </ul>
-
-          <div class="mode-visual">
-            <span class="prompt">$</span> <span class="cmd">blip</span><br>
-            <span class="dim">Opening browser with overlay...</span><br>
-            <span class="dim">Waiting for annotations...</span><br>
-            <span class="prompt">&#10003;</span> <span class="cmd">Annotated screenshot received</span>
-          </div>
-        </div>
-      </div>
-    </section>
 
   </div>
 
