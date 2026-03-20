@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.png" alt="Blip" width="200" />
+  <img src="logo_white.png" alt="Blip" width="200" />
 </p>
 
 <p align="center">

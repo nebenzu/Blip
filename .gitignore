@@ -8,6 +8,7 @@ Blip/
 *.png
 !public/**
 !logo.png
+!logo_white.png
 !landing/**/*.png
 .vercel
 demo-*.gif
