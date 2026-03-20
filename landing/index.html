@@ -907,7 +907,24 @@
 
     /* --- Responsive --- */
     @media (max-width: 768px) {
-      .hero-character img { width: 160px; }
+      .hero-headline {
+        padding-left: 0;
+        transform: none;
+        text-align: center;
+      }
+      .hero-character {
+        position: relative;
+        left: auto;
+        top: auto;
+        transform: none;
+        text-align: center;
+        margin-bottom: 16px;
+      }
+      .hero-character img { width: 180px; }
+      h1 { font-size: clamp(36px, 10vw, 52px); }
+      .hero-text { text-align: center; }
+      .hero-sub { margin-left: auto; margin-right: auto; }
+      .hero-actions { justify-content: center; }
       .steps-grid { grid-template-columns: 1fr; }
       .step-row { gap: 16px; }
       .step-visual { height: 140px; }
